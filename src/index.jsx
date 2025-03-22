@@ -42,7 +42,7 @@ function App() {
         );
       } else {
         setIsViewingLaptop(true);
-        const cameraPosition = [0.5, 2, 1.5];
+        const cameraPosition = [0.5, 2, 1];
         const lookAtPosition = [0.5, 1.54, -1];
 
         cameraControlsRef.current.setLookAt(

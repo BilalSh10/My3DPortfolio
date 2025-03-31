@@ -3,9 +3,17 @@ import ReactDOM from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import Experience from "./Experience";
 import React, { useRef, useState, useEffect } from "react";
-import { useCursor, CameraControls, OrbitControls } from "@react-three/drei";
+import {
+  useCursor,
+  CameraControls,
+  OrbitControls,
+  OrthographicCamera,
+  Loader,
+} from "@react-three/drei";
 import { IoVideocamOutline } from "react-icons/io5";
 import { BiPointer } from "react-icons/bi";
+import { HiOutlineSpeakerXMark, HiOutlineSpeakerWave } from "react-icons/hi2";
+import { Suspense } from "react";
 
 const root = ReactDOM.createRoot(document.querySelector("#root"));
 
@@ -13,7 +21,9 @@ function App() {
   const [hovered, setHovered] = useState(false);
   const [isDisplayingLaptop, setIsDisplayingLaptop] = useState(false);
   const [isCameraControl, setIsCameraControl] = useState(false);
-  const [isViewingLaptop, setIsViewingLaptop] = useState(false);
+  const [isViewingWebsite, setIsViewingWebsite] = useState(false);
+  const [isAudioPlay, setIsAudioPlay] = useState(false);
+
   const cameraControlsRef = useRef();
 
   useEffect(() => {
@@ -26,25 +36,50 @@ function App() {
 
   useCursor(hovered);
 
+  const audioRef = useRef();
+
+  useEffect(() => {
+    const audio = new Audio("./music/Moavii.mp3");
+    audioRef.current = audio;
+    audio.loop = true;
+    audio.volume = 0.2;
+    audio.play().catch((e) => console.log("Audio play failed:", e));
+
+    return () => {
+      audio.pause();
+    };
+  }, [isViewingWebsite]);
+
+  const stopAudio = () => {
+    setIsAudioPlay(!isAudioPlay);
+    if (!isAudioPlay) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+  };
+
   const moveCameraToLaptop = () => {
     if (cameraControlsRef.current) {
       cameraControlsRef.current.enabled = false; // Disable interaction
-      setIsViewingLaptop(false);
+      setIsDisplayingLaptop(false);
 
       if (isDisplayingLaptop) {
-        const initialCameraPosition = [-3, 2, 5];
+        const initialCameraPosition = [-8, 5, 8];
         const initialLookAtPosition = [0, 0, 0];
 
+        cameraControlsRef.current.zoomTo(45, true); // or your default zoom
         cameraControlsRef.current.setLookAt(
           ...initialCameraPosition,
           ...initialLookAtPosition,
           true
         );
       } else {
-        setIsViewingLaptop(true);
-        const cameraPosition = [0.5, 2, 1];
-        const lookAtPosition = [0.5, 1.54, -1];
+        setIsDisplayingLaptop(true);
+        const cameraPosition = [-2.5, -0.2, -3];
+        const lookAtPosition = [-2.5, -1, -6.45];
 
+        cameraControlsRef.current.zoomTo(400, true); // Adjust this value as needed
         cameraControlsRef.current.setLookAt(
           ...cameraPosition,
           ...lookAtPosition,
@@ -56,8 +91,6 @@ function App() {
         cameraControlsRef.current.enabled = true; // Re-enable interaction
       }, 10); // Adjust the delay as needed
     }
-
-    setIsDisplayingLaptop(!isDisplayingLaptop);
   };
 
   function changeCameraController() {
@@ -67,40 +100,56 @@ function App() {
   return (
     <>
       <Canvas
+        flat
         onPointerOver={() => isCameraControl && setHovered(true)}
         onPointerOut={() => isCameraControl && setHovered(false)}
         onPointerDown={moveCameraToLaptop}
-        camera={{
-          fov: 45,
-          near: 0.1,
-          far: 2000,
-          position: [-3, 2, 5],
-        }}
         className="r3f"
       >
         {isCameraControl ? (
-          <CameraControls
-            ref={cameraControlsRef}
-            minAzimuthAngle={-Math.PI / 9}
-            maxAzimuthAngle={Math.PI / 9}
-            minPolarAngle={Math.PI / 3}
-            maxPolarAngle={Math.PI - Math.PI / 1.8}
-            smoothTime={0.45}
-          />
+          <>
+            <CameraControls
+              ref={cameraControlsRef}
+              minAzimuthAngle={-Math.PI / 9}
+              maxAzimuthAngle={Math.PI / 9}
+              minPolarAngle={Math.PI / 3}
+              maxPolarAngle={Math.PI - Math.PI / 1.8}
+              smoothTime={1}
+            />
+            <OrthographicCamera
+              makeDefault
+              zoom={45}
+              near={0.1}
+              far={2000}
+              position={[-8, 5, 8]}
+            />
+          </>
         ) : (
-          <OrbitControls
-            enableZoom={false}
-            minAzimuthAngle={-Math.PI / 5}
-            maxAzimuthAngle={Math.PI / 3.5}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI - Math.PI / 1.8}
-          />
+          <>
+            <OrbitControls
+              maxZoom={100}
+              minZoom={30}
+              minAzimuthAngle={-Math.PI / 2}
+              maxAzimuthAngle={Math.PI / 360}
+              minPolarAngle={Math.PI / 7}
+              maxPolarAngle={Math.PI - Math.PI / 1.8}
+            />
+            <OrthographicCamera
+              makeDefault
+              zoom={45}
+              near={0.1}
+              far={2000}
+              position={[-8, 5, 8]}
+            />
+          </>
         )}
 
-        <Experience />
+        <Suspense fallback={null}>
+          <Experience />
+        </Suspense>
       </Canvas>
 
-      {isViewingLaptop ? null : (
+      {isDisplayingLaptop ? null : (
         <div className="bio">
           <div className="bio-header">
             <p className="greeting">Hello, I'm Bilal Shweike</p>
@@ -108,7 +157,28 @@ function App() {
               {isCameraControl ? <IoVideocamOutline /> : <BiPointer />}
             </button>
           </div>
-          <p className="title">I'm a Software Engineer</p>
+          <div className="bio-footer">
+            <p className="title">Software Engineer</p>
+            <button className="camera-button" onClick={stopAudio}>
+              {isAudioPlay ? (
+                <HiOutlineSpeakerXMark />
+              ) : (
+                <HiOutlineSpeakerWave />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isViewingWebsite ? null : (
+        <div className="loadingScreen">
+          <h1>WELCOME</h1>
+          <p>
+            You can Press where ever you want in camera mode to preview the
+            website
+          </p>
+          <Loader />
+          <button onClick={() => setIsViewingWebsite(true)}> Have Fun </button>
         </div>
       )}
     </>

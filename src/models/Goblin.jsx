@@ -16,8 +16,8 @@ const Goblin = () => {
   return (
     <primitive
       ref={goblinRef}
-      scale={1.5}
-      position={[1.9, 1.04, -0.3]}
+      scale={2.6}
+      position={[-0.7, 1.5, -4.2]}
       object={goblinModel.scene}
     />
   );

@@ -6,15 +6,21 @@ const Laptop = () => {
   return (
     <>
       <rectAreaLight
-        width={1.1}
-        height={3.5}
+        width={1.4}
+        height={4}
         intensity={50} //
         color={"white"}
         rotation={[-0.1, Math.PI, 0]}
-        position={[0.5, 0.9, -0.55]}
+        position={[-2.5, -1.55, -4.2]}
       />
-      <primitive scale={0.5} object={laptop.scene} position-y={0.8} position-x={0.5} rotation={[0, 0.07, 0]}>
+      <primitive
+        scale={0.7}
+        object={laptop.scene}
+        position={[-2.5, -1.55, -3.45]}
+        rotation={[0, 0, 0]}
+      >
         <Html
+          occlude
           wrapperClass="websiteScreen"
           transform
           distanceFactor={1.1}
